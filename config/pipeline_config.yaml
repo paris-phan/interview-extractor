@@ -1,0 +1,232 @@
+# HooYouKnow Pipeline Configuration
+
+# Newsletter Section Definitions
+sections:
+  - name: COLD_OPEN
+    title: "COLD OPEN"
+    question_pattern: "How Did You Get Your Start?"
+    extraction_prompt: |
+      Extract the guest's career origin story from this interview transcript.
+      Focus on:
+      - How they got started in their field or career
+      - Early career decisions and pivotal moments
+      - What drew them to their profession
+      - Initial steps they took
+
+      Write in first person, as if the guest is speaking directly to the reader.
+      Keep it engaging, authentic, and conversational (150-300 words).
+      Use direct quotes when possible to maintain their voice.
+    optional: false
+    target_word_count: 250
+
+  - name: TURNING_POINT
+    title: "TURNING POINT"
+    question_pattern: "What Was Your Biggest Challenge?"
+    extraction_prompt: |
+      Extract the story of an early challenge, obstacle, or difficult moment in their career.
+      Focus on:
+      - The specific challenge they faced
+      - How they felt at the time
+      - What they did to overcome it
+      - What they learned from the experience
+
+      Write in first person, maintaining their authentic voice.
+      Make it relatable and inspirational (150-300 words).
+      Emphasize the human element and emotional journey.
+    optional: false
+    target_word_count: 250
+
+  - name: STEAL_THIS
+    title: "STEAL THIS"
+    question_pattern: "What's Your Favorite Question?"
+    extraction_prompt: |
+      Extract their favorite question - either one they like to ask others or one they wish people would ask them.
+      Focus on:
+      - The exact question they mention
+      - Why this question is meaningful to them
+      - What it reveals or helps uncover
+      - How it impacts conversations or relationships
+
+      Write in first person, keeping it concise and punchy (100-200 words).
+      Make the question itself prominent and memorable.
+    optional: false
+    target_word_count: 150
+
+  - name: BUYER_BEWARE
+    title: "BUYER BEWARE"
+    question_pattern: "Who Wouldn't Like Your Job?"
+    extraction_prompt: |
+      Extract honest insights about who WOULDN'T enjoy or succeed in their role/field.
+      Focus on:
+      - Personality traits that wouldn't fit
+      - Misconceptions about the glamour of the job
+      - Difficult or unglamorous aspects
+      - Who should think twice before pursuing this path
+
+      Write in first person, being refreshingly honest (100-200 words).
+      This section helps readers self-select and manage expectations.
+    optional: true
+    target_word_count: 150
+
+  - name: INDUSTRY_INSIDER
+    title: "INDUSTRY INSIDER"
+    question_pattern: "What Do People Get Wrong About Your Field?"
+    extraction_prompt: |
+      Extract common misconceptions or misunderstandings about their industry or role.
+      Focus on:
+      - What outsiders typically misunderstand
+      - Gap between perception and reality
+      - Insider knowledge that would surprise people
+      - Corrections to common assumptions
+
+      Write in first person, being informative and eye-opening (150-250 words).
+      Give readers insider perspective they can't get elsewhere.
+    optional: false
+    target_word_count: 200
+
+  - name: IF_I_WERE_YOU
+    title: "IF I WERE YOU"
+    question_pattern: "What Advice Would You Give Students?"
+    extraction_prompt: |
+      Extract actionable advice for university students or young people starting their careers.
+      Focus on:
+      - Specific, practical advice they wish they'd known
+      - Skills to develop or things to prioritize
+      - Mistakes to avoid
+      - Mindsets or approaches that will serve them well
+
+      Write in first person, being direct and actionable (150-300 words).
+      Make it feel like wisdom from a mentor having coffee with you.
+    optional: false
+    target_word_count: 250
+
+# Newsletter Metadata
+newsletter:
+  name: "HooYouKnow"
+  tagline: "Real talk from real professionals"
+  author: "HooYouKnow Team"
+  website: "https://hooyouknow.com"
+
+# Extraction Settings
+extraction:
+  # LLM provider: "claude" or "openai"
+  provider: "claude"  # Can be overridden by environment variable LLM_PROVIDER
+
+  # Model configurations
+  claude:
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.7
+    max_tokens: 4000
+
+  openai:
+    model: "gpt-4-turbo-preview"
+    temperature: 0.7
+    max_tokens: 4000
+
+  # Retry configuration
+  max_retries: 3
+  retry_delay: 2  # seconds
+
+  # System prompt for extraction
+  system_prompt: |
+    You are an expert content editor for HooYouKnow, a newsletter featuring authentic career stories.
+    Your job is to extract specific sections from interview transcripts while maintaining the guest's authentic voice.
+
+    Guidelines:
+    - Write in first person (as if the guest is speaking)
+    - Keep the conversational, authentic tone
+    - Use direct quotes when available
+    - Be concise but engaging
+    - Focus on relatability and practical insights
+    - Avoid corporate jargon or overly formal language
+
+# Transcription Settings
+transcription:
+  model: "whisper-1"
+  language: "en"  # ISO language code, or null for auto-detection
+  response_format: "verbose_json"  # Options: json, text, srt, verbose_json, vtt
+  temperature: 0.0
+
+  # Retry configuration
+  max_retries: 3
+  retry_delay: 2  # seconds
+
+# Output Settings
+output:
+  # Output formats to generate
+  formats:
+    - markdown
+    - json
+    # - html  # Optional: enable if needed
+
+  # Output directory structure
+  directory_structure:
+    base: "outputs"
+    transcripts: "transcripts"
+    newsletters: "newsletters"
+    metadata: "metadata"
+
+  # Newsletter markdown template
+  markdown_template: |
+    # HooYouKnow Newsletter: {guest_name}
+
+    **Guest:** {guest_name}
+    **Title:** {guest_title}
+    **Episode:** {episode_number}
+    **Date:** {date}
+
+    ---
+
+    {sections}
+
+    ---
+
+    *Want to share your story? Visit [hooyouknow.com](https://hooyouknow.com)*
+
+# Quality Check Settings
+quality_check:
+  # Word count ranges for validation (min, max)
+  word_count:
+    min: 50
+    max: 500
+    warn_below: 100
+    warn_above: 350
+
+  # Required sections (must be present)
+  required_sections:
+    - COLD_OPEN
+    - TURNING_POINT
+    - STEAL_THIS
+    - INDUSTRY_INSIDER
+    - IF_I_WERE_YOU
+
+  # Content quality checks
+  reject_if_contains:
+    - "[No response]"
+    - "[Not discussed]"
+    - "N/A"
+    - "TODO"
+
+  # Minimum quality score (0-1)
+  min_quality_score: 0.6
+
+# Cost Tracking
+cost_tracking:
+  # Pricing per 1000 tokens (USD)
+  pricing:
+    whisper_per_minute: 0.006
+    claude_sonnet_input: 0.003
+    claude_sonnet_output: 0.015
+    gpt4_turbo_input: 0.01
+    gpt4_turbo_output: 0.03
+
+  # Enable cost estimation before processing
+  estimate_before_processing: true
+  warn_if_cost_exceeds: 1.00  # USD
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_to_file: true
+  log_file: "logs/pipeline.log"
