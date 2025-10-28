@@ -7,8 +7,9 @@ content extraction to newsletter formatting.
 
 import time
 import logging
+import json
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 
 from .utils import (
     load_config,
@@ -420,3 +421,321 @@ class InterviewPipeline:
             List of section definitions.
         """
         return self.config.get("sections", [])
+
+    def batch_process(
+        self,
+        input_dir: str,
+        guest_info_file: str,
+        output_dir: Optional[str] = None,
+        save_intermediates: bool = True,
+        continue_on_error: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Process multiple interviews in batch mode.
+
+        Args:
+            input_dir: Directory containing audio files.
+            guest_info_file: Path to JSON file with guest information.
+            output_dir: Optional output directory (overrides default).
+            save_intermediates: If True, save intermediate files.
+            continue_on_error: If True, continue processing on individual failures.
+
+        Returns:
+            Dictionary with batch processing results:
+            - total_processed: Number of interviews processed
+            - successful: Number of successful interviews
+            - failed: Number of failed interviews
+            - success_rate: Success rate (0-1)
+            - results: List of individual results
+            - aggregate_stats: Aggregated statistics
+            - errors: List of errors encountered
+
+        Raises:
+            FileNotFoundError: If input directory or guest info file not found.
+            ValueError: If guest info file is invalid JSON.
+        """
+        logger.info("=" * 80)
+        logger.info("Starting batch processing")
+        logger.info("=" * 80)
+
+        batch_start = time.time()
+
+        # Validate input directory
+        input_path = Path(input_dir)
+        if not input_path.exists() or not input_path.is_dir():
+            raise FileNotFoundError(f"Input directory not found: {input_dir}")
+
+        # Load guest information
+        guest_info = self._load_guest_info(guest_info_file)
+
+        # Find all audio files in directory
+        audio_extensions = {".m4a", ".mp3", ".wav", ".mp4", ".mpeg", ".mpga", ".webm"}
+        audio_files = [
+            f for f in input_path.iterdir() if f.is_file() and f.suffix.lower() in audio_extensions
+        ]
+
+        if not audio_files:
+            logger.warning(f"No audio files found in {input_dir}")
+            return {
+                "total_processed": 0,
+                "successful": 0,
+                "failed": 0,
+                "success_rate": 0.0,
+                "results": [],
+                "aggregate_stats": {},
+                "errors": [],
+            }
+
+        logger.info(f"Found {len(audio_files)} audio file(s) in {input_dir}")
+
+        # Process each interview
+        results = []
+        errors = []
+        successful_count = 0
+        failed_count = 0
+
+        # Aggregate statistics
+        total_cost = 0.0
+        total_tokens = 0
+        total_duration = 0.0
+
+        for i, audio_file in enumerate(audio_files, 1):
+            filename = audio_file.name
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info(f"Processing {i}/{len(audio_files)}: {filename}")
+            logger.info("=" * 80)
+
+            # Get guest information for this file
+            file_info = guest_info.get(filename)
+
+            if not file_info:
+                logger.warning(f"No guest information found for {filename} in guest_info.json")
+                if continue_on_error:
+                    errors.append({
+                        "file": filename,
+                        "error": "No guest information in guest_info.json",
+                    })
+                    failed_count += 1
+                    continue
+                else:
+                    raise ValueError(f"Missing guest information for {filename}")
+
+            guest_name = file_info.get("guest_name", "Unknown")
+            guest_title = file_info.get("guest_title", "")
+            episode_number = file_info.get("episode_number")
+
+            try:
+                # Process the interview
+                result = self.process_interview(
+                    audio_path=str(audio_file),
+                    guest_name=guest_name,
+                    guest_title=guest_title,
+                    episode_number=episode_number,
+                    output_dir=output_dir,
+                    save_intermediates=save_intermediates,
+                )
+
+                results.append(result)
+
+                if result["success"]:
+                    successful_count += 1
+                    # Aggregate statistics
+                    stats = result["stats"]
+                    total_cost += stats.get("costs", {}).get("total", 0)
+                    total_tokens += stats.get("tokens", {}).get("total", 0)
+                    total_duration += stats.get("content", {}).get("audio_duration_minutes", 0)
+
+                    logger.info(f"✓ Successfully processed: {filename}")
+                else:
+                    failed_count += 1
+                    error_msg = result.get("error", "Unknown error")
+                    errors.append({"file": filename, "error": error_msg})
+                    logger.error(f"✗ Failed to process: {filename} - {error_msg}")
+
+            except Exception as e:
+                failed_count += 1
+                error_msg = str(e)
+                errors.append({"file": filename, "error": error_msg})
+                logger.error(f"✗ Exception processing {filename}: {error_msg}")
+
+                if not continue_on_error:
+                    raise
+
+        # Calculate batch statistics
+        batch_elapsed = time.time() - batch_start
+        total_processed = successful_count + failed_count
+        success_rate = successful_count / total_processed if total_processed > 0 else 0.0
+
+        # Create aggregate statistics
+        aggregate_stats = {
+            "total_cost": round(total_cost, 4),
+            "total_tokens": total_tokens,
+            "total_audio_duration_minutes": round(total_duration, 2),
+            "total_processing_time_seconds": round(batch_elapsed, 2),
+            "average_cost_per_interview": round(total_cost / successful_count, 4)
+            if successful_count > 0
+            else 0.0,
+            "average_tokens_per_interview": total_tokens // successful_count
+            if successful_count > 0
+            else 0,
+        }
+
+        # Print summary
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("BATCH PROCESSING SUMMARY")
+        logger.info("=" * 80)
+        logger.info(f"Total processed:        {total_processed}")
+        logger.info(f"Successful:             {successful_count}")
+        logger.info(f"Failed:                 {failed_count}")
+        logger.info(f"Success rate:           {success_rate * 100:.1f}%")
+        logger.info(f"Total time:             {batch_elapsed:.2f}s")
+        logger.info(f"Total cost:             ${total_cost:.4f}")
+        logger.info(f"Total tokens:           {total_tokens}")
+        logger.info(f"Total audio duration:   {total_duration:.2f} minutes")
+        if successful_count > 0:
+            logger.info(f"Avg cost per interview: ${total_cost / successful_count:.4f}")
+            logger.info(f"Avg time per interview: {batch_elapsed / successful_count:.2f}s")
+        logger.info("=" * 80)
+
+        if errors:
+            logger.warning(f"Encountered {len(errors)} error(s):")
+            for error in errors:
+                logger.warning(f"  - {error['file']}: {error['error']}")
+
+        return {
+            "total_processed": total_processed,
+            "successful": successful_count,
+            "failed": failed_count,
+            "success_rate": success_rate,
+            "results": results,
+            "aggregate_stats": aggregate_stats,
+            "errors": errors,
+            "batch_elapsed_seconds": batch_elapsed,
+        }
+
+    def _load_guest_info(self, guest_info_file: str) -> Dict[str, Dict[str, Any]]:
+        """
+        Load guest information from JSON file.
+
+        Args:
+            guest_info_file: Path to guest info JSON file.
+
+        Returns:
+            Dictionary mapping filenames to guest information.
+
+        Raises:
+            FileNotFoundError: If file doesn't exist.
+            ValueError: If file is not valid JSON.
+        """
+        guest_info_path = Path(guest_info_file)
+
+        if not guest_info_path.exists():
+            raise FileNotFoundError(f"Guest info file not found: {guest_info_file}")
+
+        try:
+            with open(guest_info_path, "r", encoding="utf-8") as f:
+                guest_info = json.load(f)
+
+            logger.info(f"Loaded guest information for {len(guest_info)} file(s)")
+            return guest_info
+
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in guest info file: {e}")
+
+    def generate_batch_report(
+        self, batch_results: Dict[str, Any], report_path: Optional[str] = None
+    ) -> str:
+        """
+        Generate a detailed batch processing report.
+
+        Args:
+            batch_results: Results from batch_process().
+            report_path: Optional path to save report file.
+
+        Returns:
+            Report text as string.
+        """
+        report_lines = []
+        report_lines.append("=" * 80)
+        report_lines.append("HOOYOUKNOW BATCH PROCESSING REPORT")
+        report_lines.append("=" * 80)
+        report_lines.append("")
+
+        # Summary section
+        report_lines.append("## Summary")
+        report_lines.append(f"Total Interviews Processed: {batch_results['total_processed']}")
+        report_lines.append(f"Successful: {batch_results['successful']}")
+        report_lines.append(f"Failed: {batch_results['failed']}")
+        report_lines.append(f"Success Rate: {batch_results['success_rate'] * 100:.1f}%")
+        report_lines.append(
+            f"Total Processing Time: {batch_results['batch_elapsed_seconds']:.2f}s"
+        )
+        report_lines.append("")
+
+        # Cost statistics
+        agg_stats = batch_results.get("aggregate_stats", {})
+        report_lines.append("## Cost & Usage Statistics")
+        report_lines.append(f"Total Cost: ${agg_stats.get('total_cost', 0):.4f}")
+        report_lines.append(f"Average Cost per Interview: ${agg_stats.get('average_cost_per_interview', 0):.4f}")
+        report_lines.append(f"Total Tokens: {agg_stats.get('total_tokens', 0):,}")
+        report_lines.append(f"Average Tokens per Interview: {agg_stats.get('average_tokens_per_interview', 0):,}")
+        report_lines.append(
+            f"Total Audio Duration: {agg_stats.get('total_audio_duration_minutes', 0):.2f} minutes"
+        )
+        report_lines.append("")
+
+        # Individual results
+        report_lines.append("## Individual Results")
+        report_lines.append("")
+
+        for i, result in enumerate(batch_results.get("results", []), 1):
+            guest_name = result.get("guest_name", "Unknown")
+            success = result.get("success", False)
+            status = "✓ SUCCESS" if success else "✗ FAILED"
+
+            report_lines.append(f"### {i}. {guest_name} - {status}")
+
+            if success:
+                stats = result.get("stats", {})
+                costs = stats.get("costs", {})
+                timing = stats.get("timing", {})
+                tokens = stats.get("tokens", {})
+
+                report_lines.append(f"  - Cost: ${costs.get('total', 0):.4f}")
+                report_lines.append(f"  - Time: {timing.get('total', 0):.2f}s")
+                report_lines.append(f"  - Tokens: {tokens.get('total', 0):,}")
+
+                output_files = result.get("output_files", {})
+                if output_files:
+                    report_lines.append("  - Output files:")
+                    for format_name, file_path in output_files.items():
+                        report_lines.append(f"    - {format_name}: {file_path}")
+            else:
+                error = result.get("error", "Unknown error")
+                report_lines.append(f"  - Error: {error}")
+
+            report_lines.append("")
+
+        # Errors section
+        if batch_results.get("errors"):
+            report_lines.append("## Errors")
+            report_lines.append("")
+            for error in batch_results["errors"]:
+                report_lines.append(f"- {error['file']}: {error['error']}")
+            report_lines.append("")
+
+        report_lines.append("=" * 80)
+
+        report_text = "\n".join(report_lines)
+
+        # Save to file if path provided
+        if report_path:
+            report_file = Path(report_path)
+            ensure_directory(report_file.parent)
+            with open(report_file, "w", encoding="utf-8") as f:
+                f.write(report_text)
+            logger.info(f"Batch report saved to: {report_path}")
+
+        return report_text
