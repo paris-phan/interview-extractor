@@ -50,18 +50,21 @@ class ContentExtractor:
         self.provider = provider.lower()
         self.config = config.get("extraction", {})
 
+        # Extract timeout setting
+        self.timeout = self.config.get("timeout", 120)  # Default 2 minutes
+
         # Initialize appropriate client based on provider
         if self.provider == "claude":
             if not anthropic_api_key:
                 raise ValueError("Anthropic API key is required when using Claude")
-            self.anthropic_client = Anthropic(api_key=anthropic_api_key)
+            self.anthropic_client = Anthropic(api_key=anthropic_api_key, timeout=self.timeout)
             self.model = self.config.get("claude", {}).get("model", "claude-3-5-sonnet-20241022")
             self.temperature = self.config.get("claude", {}).get("temperature", 0.7)
             self.max_tokens = self.config.get("claude", {}).get("max_tokens", 4000)
         elif self.provider == "openai":
             if not openai_api_key:
                 raise ValueError("OpenAI API key is required when using OpenAI")
-            self.openai_client = OpenAI(api_key=openai_api_key)
+            self.openai_client = OpenAI(api_key=openai_api_key, timeout=self.timeout)
             self.model = self.config.get("openai", {}).get("model", "gpt-4-turbo-preview")
             self.temperature = self.config.get("openai", {}).get("temperature", 0.7)
             self.max_tokens = self.config.get("openai", {}).get("max_tokens", 4000)
@@ -77,7 +80,7 @@ class ContentExtractor:
         self.sections_config = config.get("sections", [])
         self.quality_config = config.get("quality_check", {})
 
-        logger.info(f"ContentExtractor initialized with provider: {self.provider}, model: {self.model}")
+        logger.info(f"ContentExtractor initialized with provider: {self.provider}, model: {self.model}, timeout: {self.timeout}s")
 
     def extract_sections(
         self,
@@ -105,6 +108,14 @@ class ContentExtractor:
 
         # Build the extraction prompt
         prompt = self._build_extraction_prompt(transcript, guest_name, guest_title)
+
+        # Log prompt size for debugging
+        prompt_chars = len(prompt)
+        estimated_tokens = prompt_chars // 4  # Rough estimate: 4 chars per token
+        logger.info(
+            f"Extraction prompt size: {prompt_chars} characters (~{estimated_tokens} tokens). "
+            f"Timeout: {self.timeout}s"
+        )
 
         # Call appropriate LLM
         attempt = 0

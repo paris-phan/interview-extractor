@@ -40,7 +40,6 @@ class AudioTranscriber:
             raise ValueError("OpenAI API key is required for transcription")
 
         self.api_key = api_key
-        self.client = OpenAI(api_key=api_key)
         self.config = config.get("transcription", {})
 
         # Extract configuration settings
@@ -50,8 +49,12 @@ class AudioTranscriber:
         self.temperature = self.config.get("temperature", 0.0)
         self.max_retries = self.config.get("max_retries", 3)
         self.retry_delay = self.config.get("retry_delay", 2)
+        self.timeout = self.config.get("timeout", 300)  # Default 5 minutes
 
-        logger.info(f"AudioTranscriber initialized with model: {self.model}")
+        # Initialize client with timeout
+        self.client = OpenAI(api_key=api_key, timeout=self.timeout)
+
+        logger.info(f"AudioTranscriber initialized with model: {self.model}, timeout: {self.timeout}s")
 
     def transcribe(
         self,
@@ -83,7 +86,17 @@ class AudioTranscriber:
         if not validate_audio_file(audio_path):
             raise ValueError(f"Invalid audio file: {audio_path}")
 
-        logger.info(f"Starting transcription for: {audio_path}")
+        # Log file information
+        from pathlib import Path
+        file_path = Path(audio_path)
+        file_size_mb = file_path.stat().st_size / (1024 * 1024)
+        logger.info(f"Starting transcription for: {audio_path} (size: {file_size_mb:.2f}MB)")
+
+        if file_size_mb > 20:
+            logger.warning(
+                f"Large audio file ({file_size_mb:.2f}MB). "
+                f"Transcription may take several minutes. Timeout set to {self.timeout}s."
+            )
 
         # Use provided parameters or fall back to config
         lang = language or self.language
