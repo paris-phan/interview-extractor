@@ -181,6 +181,8 @@ cython_debug/
 .cursorindexingignore
 
 output/
+outputs/
+logs/
 
 .local.*
 */.local.*
