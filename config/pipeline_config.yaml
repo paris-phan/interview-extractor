@@ -17,7 +17,7 @@ sections:
       Keep it engaging, authentic, and conversational (150-300 words).
       Use direct quotes when possible to maintain their voice.
     optional: false
-    target_word_count: 250
+    target_word_count: 125
 
   - name: TURNING_POINT
     title: "TURNING POINT"
@@ -34,7 +34,7 @@ sections:
       Make it relatable and inspirational (150-300 words).
       Emphasize the human element and emotional journey.
     optional: false
-    target_word_count: 250
+    target_word_count: 125
 
   - name: STEAL_THIS
     title: "STEAL THIS"
@@ -50,7 +50,7 @@ sections:
       Write in first person, keeping it concise and punchy (100-200 words).
       Make the question itself prominent and memorable.
     optional: false
-    target_word_count: 150
+    target_word_count: 125
 
   - name: BUYER_BEWARE
     title: "BUYER BEWARE"
@@ -66,7 +66,7 @@ sections:
       Write in first person, being refreshingly honest (100-200 words).
       This section helps readers self-select and manage expectations.
     optional: true
-    target_word_count: 150
+    target_word_count: 125
 
   - name: INDUSTRY_INSIDER
     title: "INDUSTRY INSIDER"
@@ -82,7 +82,7 @@ sections:
       Write in first person, being informative and eye-opening (150-250 words).
       Give readers insider perspective they can't get elsewhere.
     optional: false
-    target_word_count: 200
+    target_word_count: 125
 
   - name: IF_I_WERE_YOU
     title: "IF I WERE YOU"
@@ -98,7 +98,7 @@ sections:
       Write in first person, being direct and actionable (150-300 words).
       Make it feel like wisdom from a mentor having coffee with you.
     optional: false
-    target_word_count: 250
+    target_word_count: 125
 
 # Newsletter Metadata
 newsletter:
@@ -110,7 +110,7 @@ newsletter:
 # Extraction Settings
 extraction:
   # LLM provider: "claude" or "openai"
-  provider: "claude"  # Can be overridden by environment variable LLM_PROVIDER
+  provider: "openai"  # Can be overridden by environment variable LLM_PROVIDER
 
   # Model configurations
   claude:
@@ -188,9 +188,9 @@ quality_check:
   # Word count ranges for validation (min, max)
   word_count:
     min: 50
-    max: 500
-    warn_below: 100
-    warn_above: 350
+    max: 250
+    warn_below: 75
+    warn_above: 175
 
   # Required sections (must be present)
   required_sections:
