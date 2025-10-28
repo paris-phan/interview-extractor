@@ -127,6 +127,9 @@ extraction:
   max_retries: 3
   retry_delay: 2  # seconds
 
+  # Timeout configuration (in seconds)
+  timeout: 120  # 2 minutes - sufficient for most extraction tasks
+
   # System prompt for extraction
   system_prompt: |
     You are an expert content editor for HooYouKnow, a newsletter featuring authentic career stories.
@@ -150,6 +153,9 @@ transcription:
   # Retry configuration
   max_retries: 3
   retry_delay: 2  # seconds
+
+  # Timeout configuration (in seconds)
+  timeout: 300  # 5 minutes - sufficient for large audio files
 
 # Output Settings
 output:
