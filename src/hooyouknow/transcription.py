@@ -105,6 +105,7 @@ class AudioTranscriber:
         # Open and transcribe the audio file
         with open(audio_path, "rb") as audio_file:
             try:
+                logger.info(f"Sending transcription request to OpenAI Whisper API for file: {audio_path}")
                 # Make API call
                 response = self.client.audio.transcriptions.create(
                     model=self.model,
@@ -113,6 +114,7 @@ class AudioTranscriber:
                     response_format=fmt,
                     temperature=self.temperature,
                 )
+                logger.info(f"Transcription request sent successfully for file: {audio_path}")
 
                 # Parse response based on format
                 if fmt == "verbose_json":

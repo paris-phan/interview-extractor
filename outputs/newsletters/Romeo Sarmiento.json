@@ -1,0 +1,55 @@
+{
+  "newsletter": {
+    "name": "HooYouKnow",
+    "tagline": "Real talk from real professionals",
+    "website": "https://hooyouknow.com"
+  },
+  "episode": {
+    "guest_name": "Romeo Sarmiento",
+    "guest_title": "Senior Software Engineer at Tech Corp",
+    "episode_number": null,
+    "date": "2025-10-27"
+  },
+  "sections": [
+    {
+      "name": "COLD_OPEN",
+      "title": "COLD OPEN",
+      "content": "You know, my journey really kicked off after my family and I moved here from the Philippines, aiming for that American dream. It pushed me to enlist in the Marines, serve the country that gave us a chance at a new life. After multiple deployments and seeing the world, I felt this pull towards education, something I missed out on while in the service. That led me to UVA, and from there, my curiosity took me into finance, a field no one in my family had ever touched before. It was all about chasing something greater, something new. So, from the military to college to finance, that's how I got my start.",
+      "word_count": 112,
+      "optional": false
+    },
+    {
+      "name": "TURNING_POINT",
+      "title": "TURNING POINT",
+      "content": "One of the biggest challenges I faced was during a mission involving the Romanian Navy. We were there to train, aid, and assist ahead of their combat deployment, but they had a completely different view of what our mission was. The stakes were high, tensions were palpable. Overcoming this meant not just bridging a language gap, which we did by finding a translator, but also navigating cultural differences. We had to align our objectives without compromising the mission's integrity. This experience taught me the importance of relationship management and how to effectively communicate and align goals across different backgrounds.",
+      "word_count": 99,
+      "optional": false
+    },
+    {
+      "name": "STEAL_THIS",
+      "title": "STEAL THIS",
+      "content": "A question that really hits deep for me, one I've been asked and find transformative, is, 'Tell me about your soul.' It forces reflection, asking you to consider who you are, what you value, and who you're doing it all for. It's a question that cuts to the core, making you and others around you think beyond the surface level.",
+      "word_count": 60,
+      "optional": false
+    },
+    {
+      "name": "INDUSTRY_INSIDER",
+      "title": "INDUSTRY INSIDER",
+      "content": "A common misconception about being a Marine or a veteran, in general, is this embedded patriotism, as if we carry the Star Spangled Banner to class every day. There's also this idea that all we did aligns with every military action, which isn’t the case. Another thing is, until I share my experiences, it's not immediately apparent to others, especially younger students, the range of experiences I bring. They don't immediately see that I've had to lead adults in foreign countries and be responsible for their lives. It's a gap in perception about the breadth and depth of a veteran's experience.",
+      "word_count": 101,
+      "optional": false
+    },
+    {
+      "name": "IF_I_WERE_YOU",
+      "title": "IF I WERE YOU",
+      "content": "To students, I'd say, treat college as a level playing field. The resources, the professors, the courses - they're all there for you. The accountability is on you to make the most of it. You don't have to follow a preset path to achieve your goals, whether it's in finance, consulting, or any field. Find your strengths, apply them, and don't compare your journey to anyone else's. Everyone's path is unique, and how you achieve your goals doesn't have to mirror anyone else's. Put yourself out there, set achievable goals, and stay true to your course.",
+      "word_count": 96,
+      "optional": false
+    }
+  ],
+  "metadata": {
+    "generated_at": "2025-10-27T22:10:34.341809",
+    "total_sections": 5,
+    "total_words": 468
+  }
+}
