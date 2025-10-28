@@ -21,7 +21,7 @@ sections:
 
   - name: TURNING_POINT
     title: "TURNING POINT"
-    question_pattern: "What Was Your Biggest Challenge?"
+    question_pattern: "What's a Challege You Faced Early On?"
     extraction_prompt: |
       Extract the story of an early challenge, obstacle, or difficult moment in their career.
       Focus on:
@@ -38,7 +38,7 @@ sections:
 
   - name: STEAL_THIS
     title: "STEAL THIS"
-    question_pattern: "What's Your Favorite Question?"
+    question_pattern: "What's a Question You Love To Ask Yourself?"
     extraction_prompt: |
       Extract their favorite question - either one they like to ask others or one they wish people would ask them.
       Focus on:
@@ -142,6 +142,7 @@ extraction:
     - Be concise but engaging
     - Focus on relatability and practical insights
     - Avoid corporate jargon or overly formal language
+    - Do not fabricate details; only use information present in the transcript
 
 # Transcription Settings
 transcription:
