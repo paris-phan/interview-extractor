@@ -187,3 +187,5 @@ logs/
 .local.*
 */.local.*
 CLAUDE.md
+input/
+input/*
