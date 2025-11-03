@@ -1,0 +1,17 @@
+{
+  "john_appleseed.m4a": {
+    "guest_name": "John Appleseed",
+    "guest_title": "Senior Software Engineer at Tech Corp",
+    "episode_number": 1
+  },
+  "john_harvard.m4a": {
+    "guest_name": "John Harvard",
+    "guest_title": "Data Scientist at Data Solutions",
+    "episode_number": 2
+  },
+  "john_mit.m4a": {
+    "guest_name": "John MIT",
+    "guest_title": "Marketing Director at Creative Agency",
+    "episode_number": 3
+  }
+}
