@@ -52,17 +52,17 @@ def main():
         print()
 
         # Check for example audio files
-        examples_dir = Path("examples")
-        audio_files = list(examples_dir.glob("*.m4a"))
+        input_dir = Path("input")
+        audio_files = list(input_dir.glob("*.m4a"))
 
         if not audio_files:
-            print("No audio files found in examples/ directory")
+            print("No audio files found in input/ directory")
             print()
-            print("To test the pipeline, add audio files to the examples/ directory")
+            print("To test the pipeline, add audio files to the input/ directory")
             print("and create a guest_info.json file with guest information.")
             return
 
-        print(f"Found {len(audio_files)} audio file(s) in examples/")
+        print(f"Found {len(audio_files)} audio file(s) in input/")
         print()
 
         # Estimate costs
@@ -88,7 +88,7 @@ def main():
         print()
 
         # Try to get guest info
-        guest_info_file = examples_dir / "guest_info.json"
+        guest_info_file = input_dir / "guest_info.json"
         guest_name = audio_files[0].stem  # Use filename as default
         guest_title = ""
 

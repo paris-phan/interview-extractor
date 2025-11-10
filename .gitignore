@@ -187,3 +187,6 @@ logs/
 .local.*
 */.local.*
 CLAUDE.md
+input/
+input/*
+!input/guest_info.json.example
